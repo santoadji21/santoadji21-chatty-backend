@@ -1,7 +1,7 @@
 import express, { Express } from 'express'
-import { ChattyServer } from './setupServer'
-import setupDatabase from './setupDatabase'
-import { config } from './config'
+import { ChattyServer } from '@root/setupServer'
+import setupDatabase from '@root/setupDatabase'
+import { config } from '@root/config'
 
 class Application {
   public initialize(): Express {
@@ -15,6 +15,7 @@ class Application {
 
   private loadConfig(): void {
     config.validateConfig()
+    config.cludinaryConfig()
   }
 }
 const app = new Application()

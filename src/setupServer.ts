@@ -11,9 +11,9 @@ import http from 'http'
 import HTTP_STATUS from 'http-status-codes'
 import { createClient } from 'redis'
 import { Server } from 'socket.io'
-import { config } from './config'
-import applicationRoutes from './routes'
-import { CustomError, IErrorResponse } from './shared/globals/helpers/error-handler'
+import { config } from '@root/config'
+import applicationRoutes from '@root/routes'
+import { CustomError, IErrorResponse } from '@globals/helpers/error-handler'
 
 const log: Logger = config.createLogger('server')
 
