@@ -33,4 +33,4 @@ const signupSchema = z.object({
   }),
 })
 
-export type SignupSchema = z.infer<typeof signupSchema>
+export { signupSchema }

@@ -13,6 +13,7 @@ class Config {
   public readonly CLIENT_URL: string = process.env.CLIENT_URL || ''
   public readonly REDIS_HOST: string = process.env.REDIS_HOST || ''
   public readonly REDIS_PORT: number = Number(process.env.REDIS_PORT) || 6379
+  public readonly REDIS_PASSWORD: string = process.env.REDIS_PASSWORD || ''
   public readonly CLOUDINARY_CLOUD_NAME: string = process.env.CLOUDINARY_CLOUD_NAME || ''
   public readonly CLOUDINARY_API_KEY: string = process.env.CLOUDINARY_API_KEY || ''
   public readonly CLOUDINARY_API_SECRET: string = process.env.CLOUDINARY_API_SECRET || ''
@@ -27,6 +28,7 @@ class Config {
     this.CLIENT_URL = this.CLIENT_URL
     this.REDIS_HOST = this.REDIS_HOST
     this.REDIS_PORT = this.REDIS_PORT
+    this.REDIS_PASSWORD = this.REDIS_PASSWORD
     this.CLOUDINARY_CLOUD_NAME = this.CLOUDINARY_CLOUD_NAME
     this.CLOUDINARY_API_KEY = this.CLOUDINARY_API_KEY
     this.CLOUDINARY_API_SECRET = this.CLOUDINARY_API_SECRET

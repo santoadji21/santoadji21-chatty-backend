@@ -107,7 +107,11 @@ export class ChattyServer {
     })
 
     const pubClient = createClient({
-      url: `${config.REDIS_HOST}:${config.REDIS_PORT}`,
+      password: config.REDIS_PASSWORD,
+      socket: {
+        host: config.REDIS_HOST,
+        port: config.REDIS_PORT,
+      }
     })
     const subClient = pubClient.duplicate()
     await Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
