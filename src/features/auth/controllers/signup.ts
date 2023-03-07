@@ -1,17 +1,21 @@
 import { IAuthDocument, ISignUpData } from '@auth/interfaces/auth.interface'
 import { signupSchema } from '@auth/schemas/signup'
-import { validation } from '@globals/decoratos/zod-validation.decorator'
+import { zodValidation } from '@globals/decoratos/zod-validation.decorator'
 import { uploads } from '@globals/helpers/cloudinary-upload'
 import { BadRequestError } from '@globals/helpers/error-handler'
 import { Helpers } from '@globals/helpers/helper'
 import { authService } from '@services/db/auth.services'
+import { UserCache } from '@services/redis/user-cache'
+import { IUserDocument } from '@user/interfaces/user.interface'
 import { UploadApiResponse } from 'cloudinary'
 import { Request, Response } from 'express'
 import HTTP_STATUS from 'http-status-codes'
 import { ObjectId } from 'mongodb'
 
+const userCache: UserCache = new UserCache()
+
 export class SignUp {
-  @validation(signupSchema)
+  @zodValidation(signupSchema)
   public async create(req: Request, res: Response): Promise<void> {
     const { username, email, password, avatarColor, avatarImage } = req.body
     const isUserExists: IAuthDocument = await authService.getUserByUsernameorEmail(username, email)
@@ -19,6 +23,8 @@ export class SignUp {
     if (isUserExists) {
       throw new BadRequestError(`User with username ${isUserExists.username} or email ${isUserExists.email} already exists`)
     }
+
+    console.log('isUserExists:', isUserExists)
 
     const authObjectId: ObjectId = new ObjectId()
     const userObjectId: ObjectId = new ObjectId()
@@ -37,9 +43,21 @@ export class SignUp {
       throw new BadRequestError('Something went wrong while uploading your avatar image')
     }
 
+    // Add to redis cache
+    const userDataForCache: IUserDocument = SignUp.prototype.userData(authData, userObjectId)
+    userDataForCache.profilePicture = `https://res.cloudinary.com/dqjnvq4gv/image/upload/v${result.version}/${userObjectId}`
+    await userCache.saveUserToCache(`${userObjectId}`, uId, userDataForCache)
+
     res.status(HTTP_STATUS.CREATED).json({
       message: 'User created successfully',
-      data: authData,
+      user: {
+        _id: authObjectId,
+        uId,
+        username: authData.username,
+        email: authData.email,
+        avatarColor: authData.avatarColor,
+        avatarImage: result.secure_url,
+      },
     })
   }
 
@@ -54,5 +72,42 @@ export class SignUp {
       username: Helpers.firstLetterUpperCase(username),
       createdAt: new Date(),
     } as IAuthDocument
+  }
+
+  private userData(data: IAuthDocument, userObjectId: ObjectId): IUserDocument {
+    const { _id, username, email, uId, password, avatarColor } = data
+    return {
+      _id: userObjectId,
+      authId: _id,
+      uId,
+      username: Helpers.firstLetterUpperCase(username),
+      email,
+      password,
+      avatarColor,
+      profilePicture: '',
+      blocked: [],
+      blockedBy: [],
+      work: '',
+      location: '',
+      school: '',
+      quote: '',
+      bgImageVersion: '',
+      bgImageId: '',
+      followersCount: 0,
+      followingCount: 0,
+      postsCount: 0,
+      notifications: {
+        messages: true,
+        reactions: true,
+        comments: true,
+        follows: true,
+      },
+      social: {
+        facebook: '',
+        instagram: '',
+        twitter: '',
+        youtube: '',
+      },
+    } as unknown as IUserDocument
   }
 }

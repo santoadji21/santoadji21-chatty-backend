@@ -1,16 +1,16 @@
 import HTTP_STATUS from 'http-status-codes'
 
-export interface IError {
-  message: string
-  statusCode: number
-  status: string
-}
-
 export interface IErrorResponse {
   message: string
   statusCode: number
   status: string
   serializeErrors(): IError
+}
+
+export interface IError {
+  message: string
+  statusCode: number
+  status: string
 }
 
 export abstract class CustomError extends Error {
@@ -19,16 +19,23 @@ export abstract class CustomError extends Error {
 
   constructor(message: string) {
     super(message)
-
-    Object.setPrototypeOf(this, CustomError.prototype)
   }
 
   serializeErrors(): IError {
     return {
       message: this.message,
-      statusCode: this.statusCode,
       status: this.status,
+      statusCode: this.statusCode,
     }
+  }
+}
+
+export class ZodRequestValidationError extends CustomError {
+  statusCode = HTTP_STATUS.BAD_REQUEST
+  status = 'error'
+
+  constructor(message: string) {
+    super(message)
   }
 }
 
@@ -38,8 +45,6 @@ export class BadRequestError extends CustomError {
 
   constructor(message: string) {
     super(message)
-
-    Object.setPrototypeOf(this, BadRequestError.prototype)
   }
 }
 
@@ -49,19 +54,24 @@ export class NotFoundError extends CustomError {
 
   constructor(message: string) {
     super(message)
-
-    Object.setPrototypeOf(this, NotFoundError.prototype)
   }
 }
 
-export class InternalServerError extends CustomError {
-  statusCode = HTTP_STATUS.INTERNAL_SERVER_ERROR
+export class NotAuthorizedError extends CustomError {
+  statusCode = HTTP_STATUS.UNAUTHORIZED
   status = 'error'
 
   constructor(message: string) {
     super(message)
+  }
+}
 
-    Object.setPrototypeOf(this, InternalServerError.prototype)
+export class FileTooLargeError extends CustomError {
+  statusCode = HTTP_STATUS.REQUEST_TOO_LONG
+  status = 'error'
+
+  constructor(message: string) {
+    super(message)
   }
 }
 
@@ -71,73 +81,5 @@ export class ServerError extends CustomError {
 
   constructor(message: string) {
     super(message)
-
-    Object.setPrototypeOf(this, ServerError.prototype)
-  }
-}
-
-export class UnauthorizedError extends CustomError {
-  statusCode = HTTP_STATUS.UNAUTHORIZED
-  status = 'error'
-
-  constructor(message: string) {
-    super(message)
-
-    Object.setPrototypeOf(this, UnauthorizedError.prototype)
-  }
-}
-
-export class ForbiddenError extends CustomError {
-  statusCode = HTTP_STATUS.FORBIDDEN
-  status = 'error'
-
-  constructor(message: string) {
-    super(message)
-
-    Object.setPrototypeOf(this, ForbiddenError.prototype)
-  }
-}
-
-export class ValidationError extends CustomError {
-  statusCode = HTTP_STATUS.UNPROCESSABLE_ENTITY
-  status = 'error'
-
-  constructor(message: string) {
-    super(message)
-
-    Object.setPrototypeOf(this, ValidationError.prototype)
-  }
-}
-
-export class JoiValidationError extends CustomError {
-  statusCode = HTTP_STATUS.UNPROCESSABLE_ENTITY
-  status = 'error'
-
-  constructor(message: string) {
-    super(message)
-
-    Object.setPrototypeOf(this, JoiValidationError.prototype)
-  }
-}
-
-export class ConflictError extends CustomError {
-  statusCode = HTTP_STATUS.CONFLICT
-  status = 'error'
-
-  constructor(message: string) {
-    super(message)
-
-    Object.setPrototypeOf(this, ConflictError.prototype)
-  }
-}
-
-export class UnprocessableEntityError extends CustomError {
-  statusCode = HTTP_STATUS.UNPROCESSABLE_ENTITY
-  status = 'error'
-
-  constructor(message: string) {
-    super(message)
-
-    Object.setPrototypeOf(this, UnprocessableEntityError.prototype)
   }
 }
