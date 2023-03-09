@@ -3,6 +3,10 @@ import Logger from 'bunyan'
 import Queue, { Job } from 'bull'
 import { ExpressAdapter, createBullBoard, BullAdapter } from '@bull-board/express'
 import { config } from '@root/config'
+import { IAuthJob } from '@auth/interfaces/auth.interface'
+import { IEmailJob, IUserJob } from '@user/interfaces/user.interface'
+
+type IBaseJobData = IAuthJob | IEmailJob | IUserJob
 
 let bullAdapters: BullAdapter[] = []
 
@@ -13,7 +17,13 @@ export abstract class BaseQueue {
   logger: Logger
 
   constructor(queueName: string) {
-    this.queue = new Queue(queueName, `redis://${config.REDIS_HOST}:${config.REDIS_PORT}`)
+    this.queue = new Queue(queueName, {
+      redis: {
+        host: config.REDIS_HOST,
+        port: config.REDIS_PORT,
+        password: config.REDIS_PASSWORD,
+      },
+    })
     bullAdapters.push(new BullAdapter(this.queue))
     bullAdapters = [...new Set(bullAdapters)]
     serverAdapter = new ExpressAdapter()
@@ -36,7 +46,7 @@ export abstract class BaseQueue {
     })
   }
 
-  protected addJob(name: string, data: any): void {
+  protected addJob(name: string, data: IBaseJobData): void {
     this.queue.add(name, data, { attempts: 3, backoff: { type: 'fixed', delay: 5000 } })
   }
 

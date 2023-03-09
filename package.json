@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=production nodemon ./build/index.js",
-    "dev": "cmd /c \"set NODE_ENV=development && nodemon -r tsconfig-paths/register src/index.ts | .\\node_modules\\.bin\\bunyan.cmd -o short\"",
+    "dev:unix": "cmd /c \"set NODE_ENV=development && nodemon -r tsconfig-paths/register src/index.ts | .\\node_modules\\.bin\\bunyan.cmd -o short\"",
     "dev-unix": "NODE_ENV=development nodemon -r tsconfig-paths/register src/index.ts | ./node_modules/.bin/bunyan",
-    "dev:win": "NODE_ENV=development nodemon -r tsconfig-paths/register src/index.ts && ./node_modules/.bin/bunyan",
+    "dev": "NODE_ENV=development nodemon -r tsconfig-paths/register src/index.ts && ./node_modules/.bin/bunyan",
     "lint:check": "eslint --ext .ts src",
     "lint:fix": "eslint --ext .ts src --fix",
     "prettier:check": "prettier --check 'src/**/*.{ts,json}'",

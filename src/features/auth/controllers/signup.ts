@@ -4,12 +4,17 @@ import { zodValidation } from '@globals/decoratos/zod-validation.decorator'
 import { uploads } from '@globals/helpers/cloudinary-upload'
 import { BadRequestError } from '@globals/helpers/error-handler'
 import { Helpers } from '@globals/helpers/helper'
+import { config } from '@root/config'
 import { authService } from '@services/db/auth.services'
+import { authQueue } from '@services/queues/auth.queue'
+import { userQueue } from '@services/queues/user.queue'
 import { UserCache } from '@services/redis/user-cache'
 import { IUserDocument } from '@user/interfaces/user.interface'
 import { UploadApiResponse } from 'cloudinary'
 import { Request, Response } from 'express'
 import HTTP_STATUS from 'http-status-codes'
+import JWT from 'jsonwebtoken'
+import { omit } from 'lodash'
 import { ObjectId } from 'mongodb'
 
 const userCache: UserCache = new UserCache()
@@ -37,28 +42,51 @@ export class SignUp {
       password,
       avatarColor,
     })
-    const result: UploadApiResponse = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiResponse
 
-    if (!result?.public_id) {
-      throw new BadRequestError('Something went wrong while uploading your avatar image')
-    }
+    // Check if avatar image is provided
+    // const result: UploadApiResponse = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiResponse
+    // if (!result?.public_id) {
+    //   throw new BadRequestError('Something went wrong while uploading your avatar image')
+    // }
 
     // Add to redis cache
     const userDataForCache: IUserDocument = SignUp.prototype.userData(authData, userObjectId)
-    userDataForCache.profilePicture = `https://res.cloudinary.com/dqjnvq4gv/image/upload/v${result.version}/${userObjectId}`
-    await userCache.saveUserToCache(`${userObjectId}`, uId, userDataForCache)
+    // userDataForCache.profilePicture = `https://res.cloudinary.com/dqjnvq4gv/image/upload/v${result.version}/${userObjectId}`
+    // await userCache.saveUserToCache(`${userObjectId}`, uId, userDataForCache)
+
+    // Add to mongoDB
+    // omit(userDataForCache, ['uId', 'username', 'email', 'password', 'avatarColor'])
+    // authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataForCache })
+    userQueue.addUserJob('addUserToDB', { value: userDataForCache })
+
+    const token: string = SignUp.prototype.signToken(authData, userObjectId)
 
     res.status(HTTP_STATUS.CREATED).json({
       message: 'User created successfully',
-      user: {
-        _id: authObjectId,
-        uId,
-        username: authData.username,
-        email: authData.email,
-        avatarColor: authData.avatarColor,
-        avatarImage: result.secure_url,
-      },
+      token,
+      user: userDataForCache,
+      // user: {
+      //   _id: authObjectId,
+      //   uId,
+      //   username: authData.username,
+      //   email: authData.email,
+      //   avatarColor: authData.avatarColor,
+      //   avatarImage: result.secure_url,
+      // },
     })
+  }
+
+  private signToken(data: IAuthDocument, userObjectId: ObjectId): string {
+    return JWT.sign(
+      {
+        userId: userObjectId,
+        uId: data.uId,
+        email: data.email,
+        username: data.username,
+        avatarColor: data.avatarColor,
+      },
+      config.JWT_SECRET!
+    )
   }
 
   private signUpData(data: ISignUpData): IAuthDocument {

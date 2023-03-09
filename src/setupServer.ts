@@ -1,7 +1,7 @@
 import { createAdapter } from '@socket.io/redis-adapter'
 import Logger from 'bunyan'
 import compression from 'compression'
-import cookierSession from 'cookie-session'
+import cookieSession from 'cookie-session'
 import cors from 'cors'
 import { Application, json, NextFunction, Request, Response, urlencoded } from 'express'
 import 'express-async-errors'
@@ -34,11 +34,11 @@ export class ChattyServer {
 
   private securityMiddleware(app: Application): void {
     app.use(
-      cookierSession({
+      cookieSession({
         name: 'session',
-        keys: [config.SECRET_KEY_ONE, config.SECRET_KEY_TWO],
-        maxAge: 24 * 7 * 60 * 60 * 1000,
-        secure: config.NODE_ENV === 'production' ? true : false,
+        keys: [config.SECRET_KEY_ONE!, config.SECRET_KEY_TWO!],
+        maxAge: 24 * 7 * 3600000,
+        secure: config.NODE_ENV !== 'development',
       })
     )
 
@@ -46,10 +46,10 @@ export class ChattyServer {
     app.use(helmet())
     app.use(
       cors({
-        origin: '*',
-        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        origin: config.CLIENT_URL,
         credentials: true,
-        optionsSuccessStatus: HTTP_STATUS.OK,
+        optionsSuccessStatus: 200,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       })
     )
   }
@@ -111,7 +111,7 @@ export class ChattyServer {
       socket: {
         host: config.REDIS_HOST,
         port: config.REDIS_PORT,
-      }
+      },
     })
     const subClient = pubClient.duplicate()
     await Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
