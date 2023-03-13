@@ -1,4 +1,3 @@
-import { NotFoundError } from '@globals/helpers/error-handler'
 import { IBasicInfo, INotificationSettings, ISocialLinks, IUserDocument } from '@user/interfaces/user.interface'
 import { UserModel } from '@user/models/user.schema'
 import mongoose from 'mongoose'
