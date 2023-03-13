@@ -4,13 +4,12 @@ import setupDatabase from '@root/setupDatabase'
 import { config } from '@root/config'
 
 class Application {
-  public initialize(): Express {
+  public initialize(): void {
     this.loadConfig()
     setupDatabase()
-    const app = express()
-    const server = new ChattyServer(app)
+    const app: Express = express()
+    const server: ChattyServer = new ChattyServer(app)
     server.start()
-    return app
   }
 
   private loadConfig(): void {
@@ -18,5 +17,6 @@ class Application {
     config.cludinaryConfig()
   }
 }
-const app = new Application()
-app.initialize()
+
+const application: Application = new Application()
+application.initialize()

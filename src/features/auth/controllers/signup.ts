@@ -29,8 +29,6 @@ export class SignUp {
       throw new BadRequestError(`User with username ${isUserExists.username} or email ${isUserExists.email} already exists`)
     }
 
-    console.log('isUserExists:', isUserExists)
-
     const authObjectId: ObjectId = new ObjectId()
     const userObjectId: ObjectId = new ObjectId()
     const uId = `${Helpers.generateRandomInteger(12)}`
@@ -44,19 +42,19 @@ export class SignUp {
     })
 
     // Check if avatar image is provided
-    // const result: UploadApiResponse = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiResponse
-    // if (!result?.public_id) {
-    //   throw new BadRequestError('Something went wrong while uploading your avatar image')
-    // }
+    const result: UploadApiResponse = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiResponse
+    if (!result?.public_id) {
+      throw new BadRequestError('Something went wrong while uploading your avatar image')
+    }
 
     // Add to redis cache
     const userDataForCache: IUserDocument = SignUp.prototype.userData(authData, userObjectId)
-    // userDataForCache.profilePicture = `https://res.cloudinary.com/dqjnvq4gv/image/upload/v${result.version}/${userObjectId}`
-    // await userCache.saveUserToCache(`${userObjectId}`, uId, userDataForCache)
+    userDataForCache.profilePicture = `https://res.cloudinary.com/dqjnvq4gv/image/upload/v${result.version}/${userObjectId}`
+    await userCache.saveUserToCache(`${userObjectId}`, uId, userDataForCache)
 
     // Add to mongoDB
-    // omit(userDataForCache, ['uId', 'username', 'email', 'password', 'avatarColor'])
-    // authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataForCache })
+    omit(userDataForCache, ['uId', 'username', 'email', 'password', 'avatarColor'])
+    authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataForCache })
     userQueue.addUserJob('addUserToDB', { value: userDataForCache })
 
     const token: string = SignUp.prototype.signToken(authData, userObjectId)
@@ -65,14 +63,6 @@ export class SignUp {
       message: 'User created successfully',
       token,
       user: userDataForCache,
-      // user: {
-      //   _id: authObjectId,
-      //   uId,
-      //   username: authData.username,
-      //   email: authData.email,
-      //   avatarColor: authData.avatarColor,
-      //   avatarImage: result.secure_url,
-      // },
     })
   }
 

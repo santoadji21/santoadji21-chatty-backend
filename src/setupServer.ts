@@ -1,7 +1,8 @@
 import { createAdapter } from '@socket.io/redis-adapter'
 import Logger from 'bunyan'
 import compression from 'compression'
-import cookieSession from 'cookie-session'
+// import cookieSession from 'cookie-session'
+import expressSession from 'express-session'
 import cors from 'cors'
 import { Application, json, NextFunction, Request, Response, urlencoded } from 'express'
 import 'express-async-errors'
@@ -34,14 +35,18 @@ export class ChattyServer {
 
   private securityMiddleware(app: Application): void {
     app.use(
-      cookieSession({
+      expressSession({
         name: 'session',
-        keys: [config.SECRET_KEY_ONE!, config.SECRET_KEY_TWO!],
-        maxAge: 24 * 7 * 3600000,
-        secure: config.NODE_ENV !== 'development',
+        secret: [config.SECRET_KEY_ONE!, config.SECRET_KEY_TWO!],
+        resave: false,
+        saveUninitialized: true,
+        cookie: {
+          maxAge: 24 * 7 * 3600000,
+          secure: config.NODE_ENV !== 'development',
+          httpOnly: true,
+        },
       })
     )
-
     app.use(hpp())
     app.use(helmet())
     app.use(
@@ -69,13 +74,13 @@ export class ChattyServer {
   }
 
   private globalErrorHandler(app: Application): void {
-    // app.all("*", (req: Request, res: Response) => {
-    //   res.status(HTTP_STATUS.NOT_FOUND).json({
-    //     status: "error",
-    //     statusCode: HTTP_STATUS.NOT_FOUND,
-    //     message: "Route not found",
-    //   })
-    // })
+    app.all('*', (req: Request, res: Response) => {
+      res.status(HTTP_STATUS.NOT_FOUND).json({
+        status: 'error',
+        statusCode: HTTP_STATUS.NOT_FOUND,
+        message: 'Route not found',
+      })
+    })
 
     app.use((err: IErrorResponse, _req: Request, res: Response, next: NextFunction) => {
       if (err instanceof CustomError) {

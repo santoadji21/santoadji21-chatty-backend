@@ -19,4 +19,4 @@ const signinSchema = z.object({
     }),
 })
 
-export type SigninSchema = z.infer<typeof signinSchema>
+export { signinSchema }

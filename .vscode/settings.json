@@ -1,5 +1,8 @@
 {
   "typescript.tsdk": "node_modules\\typescript\\lib",
   "typescript.preferences.importModuleSpecifier": "non-relative",
-  "files.autoSave": "onFocusChange"
+  "files.autoSave": "onFocusChange",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
 }
