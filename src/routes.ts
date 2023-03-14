@@ -10,7 +10,9 @@ export default (app: Application) => {
       res.send('Hello World!')
     })
     app.use('/admin/queues', serverAdapter.getRouter())
+
     app.use(PREFIX_PATH, authRoutes.routes())
+    app.use(PREFIX_PATH, authRoutes.signoutRoute())
   }
   routes()
 }
