@@ -1,8 +1,8 @@
 import { createAdapter } from '@socket.io/redis-adapter'
 import Logger from 'bunyan'
 import compression from 'compression'
-// import cookieSession from 'cookie-session'
-import expressSession from 'express-session'
+import session from 'express-session'
+
 import cors from 'cors'
 import { Application, json, NextFunction, Request, Response, urlencoded } from 'express'
 import 'express-async-errors'
@@ -35,7 +35,7 @@ export class ChattyServer {
 
   private securityMiddleware(app: Application): void {
     app.use(
-      expressSession({
+      session({
         name: 'session',
         secret: [config.SECRET_KEY_ONE!, config.SECRET_KEY_TWO!],
         resave: false,
@@ -47,6 +47,7 @@ export class ChattyServer {
         },
       })
     )
+
     app.use(hpp())
     app.use(helmet())
     app.use(

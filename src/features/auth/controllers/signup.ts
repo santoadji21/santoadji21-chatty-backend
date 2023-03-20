@@ -16,6 +16,7 @@ import HTTP_STATUS from 'http-status-codes'
 import JWT from 'jsonwebtoken'
 import { omit } from 'lodash'
 import { ObjectId } from 'mongodb'
+import { Session } from 'express-session'
 
 const userCache: UserCache = new UserCache()
 
@@ -58,6 +59,8 @@ export class SignUp {
     userQueue.addUserJob('addUserToDB', { value: userDataForCache })
 
     const token: string = SignUp.prototype.signToken(authData, userObjectId)
+    const session = req.session as Session & { jwt?: string }
+    session.jwt = token
 
     res.status(HTTP_STATUS.CREATED).json({
       message: 'User created successfully',
